@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% load static%}
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/grid.css' %}" />
+    <title>Gomoku</title>
+</head>
+<body>
+    <div class='table'>
+        <div class='board'>
+            <div class='star' style='grid-column-start: 6; grid-column-end: 8; grid-row-start: 6; grid-row-end: 8;'></div>
+            <div class='star' style='grid-column-start: 6; grid-column-end: 8; grid-row-start: 18; grid-row-end: 20;'></div>
+            <div class='star' style='grid-column-start: 6; grid-column-end: 8; grid-row-start: 30; grid-row-end: 32;'></div>
+            <div class='star' style='grid-column-start: 18; grid-column-end: 20; grid-row-start: 6; grid-row-end: 8;'></div>
+            <div class='star' style='grid-column-start: 18; grid-column-end: 20; grid-row-start: 18; grid-row-end: 20;'></div>
+            <div class='star' style='grid-column-start: 18; grid-column-end: 20; grid-row-start: 30; grid-row-end: 32;'></div>
+            <div class='star' style='grid-column-start: 30; grid-column-end: 32; grid-row-start: 6; grid-row-end: 8;'></div>
+            <div class='star' style='grid-column-start: 30; grid-column-end: 32; grid-row-start: 18; grid-row-end: 20;'></div>
+            <div class='star' style='grid-column-start: 30; grid-column-end: 32; grid-row-start: 30; grid-row-end: 32;'></div>
+        </div>
+    </div>
+</body>
+<script>
+    IA = true
+    if (IA == true) {
+        var socket = new WebSocket('ws://localhost:8000/ws/some_url/');
+
+        socket.onmessage = function(event) {
+            // var data = JSON.parse(event.data);
+            console.log('hum')
+            console.log(event.data);
+        }
+    }
+
+    const board = document.querySelector(".board");
+    const placeStone = (column, row, mark) => {
+        const stone = document.createElement("div");
+        stone.id = (row - 1) + '-' + (column - 1)
+        stone.style.gridColumnStart = (column - 1) * 2;
+        stone.style.gridColumnEnd = (column - 1) * 2 + 2;
+        stone.style.gridRowStart = (row - 1) * 2;
+        stone.style.gridRowEnd = (row - 1) * 2 + 2;
+        if (column == 1 && row == 1) 
+            stone.classList.add("stone11");
+        else if (column == 1 && row == 19) 
+            stone.classList.add("stone19");
+        else if (column == 19 && row == 19) 
+            stone.classList.add("stone99");
+        else if (column == 19 && row == 1) 
+            stone.classList.add("stone91");
+        else if (column == 1)
+            stone.classList.add("stone1x");
+        else if (row == 1)
+            stone.classList.add("stonex1");
+        else if (column == 19)
+            stone.classList.add("stone9x");
+        else if (row == 19)
+            stone.classList.add("stonex9");
+        else
+            stone.classList.add("stone");
+        stone.classList.add(mark);
+        board.appendChild(stone);
+    };
+
+    GOBAN = []
+
+    for(var i = 1; i <= 19; i++) {
+        for(var j = 1; j <= 19; j++) {
+            placeStone(i, j, 'ghost');
+        }
+        GOBAN.push(['x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x'])
+    }
+
+    BG_COLOR = {
+                'white': 'ivory', 
+                'black': 'black',
+            };
+
+    PLAYER = 'white';
+    BLACK_CAUGHT = 0
+    WHITE_CAUGHT = 0
+    LINE = []
+
+    CAPTURE = true
+
+    function opponent() {
+        return PLAYER == 'white' ? 'black' : 'white'
+    }
+
+    function containesBlackOrWhite(event) {
+        if (event.target.classList.contains('white') == true)
+            return true
+        else if (event.target.classList.contains('black') == true)
+            return true
+        else
+            return false
+    }
+
+    function saveLine(i, j, point) {
+        if (point == 1)
+            LINE = []
+        LINE.push([i, j])
+    }
+
+    function combo(i, j, point, sens = null) {
+        if (point == 5) {
+            saveLine(i, j, point);
+            return true
+        }
+        try {
+            if (GOBAN[i + 1][j - 1] == PLAYER[0] && (sens == null || sens == 'topR')) {
+                saveLine(i, j, point);
+                return combo(i + 1, j - 1, point + 1, sens = 'topR')
+            }
+        } catch (TypeError) {
+            // pass - verify stone out of the grid 
+        }
+        try {
+            if (GOBAN[i + 1][j] == PLAYER[0] && (sens == null || sens == 'right')) {
+                saveLine(i, j, point);
+                return combo(i + 1, j, point + 1, sens = 'right')
+            }
+        } catch (TypeError) {
+            // pass - verify stone out of the grid 
+        }
+        try {
+            if (GOBAN[i + 1][j + 1] == PLAYER[0] && (sens == null || sens == 'botR')) {
+                saveLine(i, j, point);
+                return combo(i + 1, j + 1, point + 1, sens = 'botR')
+            }
+        } catch (TypeError) {
+            // pass - verify stone out of the grid 
+        }
+        try {
+            if (GOBAN[i][j - 1] == PLAYER[0] && (sens == null || sens == 'bot')) {
+                saveLine(i, j, point);
+                return combo(i, j - 1, point + 1, sens = 'bot')
+            }
+        } catch (TypeError) {
+            // pass - verify stone out of the grid 
+        }
+        return false
+    }
+
+    function fiveInLine() {
+        for(var i = 0; i < 19; i++) {
+            for(var j = 0; j < 19; j++) {
+                if (GOBAN[i][j] == PLAYER[0]) {
+                    ret = combo(i, j, 1);
+                    if (ret != false)
+                        return true
+                }
+            }
+        }
+        return false
+    }
+
+    function win(color) {
+        console.log(LINE)
+        alert(color + ' win');
+    }
+
+    function del(tabId) {
+        tabId.forEach(elt => {
+            id = elt[0].toString() + '-' + elt[1].toString();
+            stone = document.getElementById(id);
+            if (stone.classList.contains('black') == true) {
+                stone.classList.remove('black');
+                BLACK_CAUGHT += 1;
+                if (BLACK_CAUGHT == 10)
+                    win('white')
+            }
+            else {
+                stone.classList.remove('white');
+                WHITE_CAUGHT += 1;
+                if (WHITE_CAUGHT == 10)
+                    win('black')
+            }
+            stone.classList.add('ghost');
+            stone.style.opacity = 0;
+            stone.style.background = 'transparent';
+        });
+    }
+
+    function capture(i, j) {
+        try {
+            if (GOBAN[i - 3][j - 3] == PLAYER[0])
+                if (GOBAN[i - 2][j - 2] == GOBAN[i - 1][j - 1] && GOBAN[i - 1][j - 1] == opponent()[0])
+                    del([[i - 2, j - 2], [i - 1, j - 1]]);
+        } catch (TypeError) {
+            // pass - verify stone out of the grid
+        }
+        try {
+            if (GOBAN[i + 3][j - 3] == PLAYER[0])
+                if (GOBAN[i + 2][j - 2] == GOBAN[i + 1][j - 1] && GOBAN[i + 1][j - 1] == opponent()[0])
+                    del([[i + 2, j - 2], [i + 1, j - 1]]);
+        } catch (TypeError) {
+            // pass - verify stone out of the grid
+        }
+        try {
+            if (GOBAN[i - 3][j + 3] == PLAYER[0])
+                if (GOBAN[i - 2][j + 2] == GOBAN[i - 1][j + 1] && GOBAN[i - 1][j + 1] == opponent()[0])
+                    del([[i - 2, j + 2], [i - 1, j + 1]]);
+        } catch (TypeError) {
+            // pass - verify stone out of the grid
+        }
+        try {
+            if (GOBAN[i + 3][j + 3] == PLAYER[0])
+                if (GOBAN[i + 2][j + 2] == GOBAN[i + 1][j + 1] && GOBAN[i + 1][j + 1] == opponent()[0])
+                    del([[i + 2, j + 2], [i + 1, j + 1]]);
+        } catch (TypeError) {
+            // pass - verify stone out of the grid
+        }
+        try {
+            if (GOBAN[i][j - 3] == PLAYER[0])
+                if (GOBAN[i][j - 2] == GOBAN[i][j - 1] && GOBAN[i][j - 1] == opponent()[0])
+                    del([[i, j - 2], [i, j - 1]]);
+        } catch (TypeError) {
+            // pass - verify stone out of the grid
+        }
+        try {
+            if (GOBAN[i + 3][j] == PLAYER[0])
+                if (GOBAN[i + 2][j] == GOBAN[i + 1][j] && GOBAN[i + 1][j] == opponent()[0])
+                    del([[i + 2, j], [i + 1, j]]);
+        } catch (TypeError) {
+            // pass - verify stone out of the grid
+        }
+        try {
+            if (GOBAN[i][j + 3] == PLAYER[0])
+                if (GOBAN[i][j + 2] == GOBAN[i][j + 1] && GOBAN[i][j + 1] == opponent()[0])
+                    del([[i, j + 2], [i, j + 1]]);
+        } catch (TypeError) {
+            // pass - verify stone out of the grid
+        }
+        try {
+            if (GOBAN[i - 3][j] == PLAYER[0])
+                if (GOBAN[i - 2][j] == GOBAN[i - 1][j] && GOBAN[i - 1][j] == opponent()[0])
+                    del([[i - 2, j], [i - 1, j]]);
+        } catch (TypeError) {
+            // pass - verify stone out of the grid
+        }
+    }
+
+    function lineCapture() {
+        LINE.forEach(elt => {
+            //
+        })
+    }
+
+    ghostList = document.getElementsByClassName('ghost')
+
+    for (var i = 0; i < ghostList.length; i++) {
+        click = false
+        ghostList[i].addEventListener('click', function(event) {
+            if (containesBlackOrWhite(event) == false) {
+                event.target.classList.add(PLAYER);
+                event.target.style.opacity = 1;
+                id = event.target.id.split('-');
+                GOBAN[id[0]][id[1]] = PLAYER[0];
+                if (CAPTURE == true)
+                    capture(parseInt(id[0]), parseInt(id[1]));
+                if (fiveInLine() == true)
+                    win(PLAYER)
+                PLAYER = PLAYER == 'white' ? 'black' : 'white';
+            }
+        })
+        ghostList[i].addEventListener('mouseover', function(event) {
+            if (containesBlackOrWhite(event) == false) {
+                event.target.style.background = BG_COLOR[PLAYER];
+                event.target.style.opacity = 0.5;
+            }
+        })
+        ghostList[i].addEventListener('mouseout', function(event) {
+            if (containesBlackOrWhite(event) == false) {
+                event.target.style.background = 'transparent';
+                event.target.style.opacity = 0;
+            }
+        })
+    }
+
+</script>
+</html>
