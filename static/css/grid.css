@@ -87,14 +87,15 @@
 
 .black {
     background: black;
-    background-image: linear-gradient(to bottom right,  transparent calc(50% - 1px), red, transparent calc(50% + 5px));
     box-shadow: 2px 2px 4px 0 rgba(0, 0, 0, 0.25),
         -2px -2px 4px 0 rgba(255, 255, 255, 0.25);
 }
 
 .white {
     background: ivory;
-    background-image: linear-gradient(to bottom right,  transparent calc(50% - 1px), red, transparent calc(50% + 1px));
     box-shadow: 2px 2px 4px 0 rgba(0, 0, 0, 0.25),
         -2px -2px 4px 0 rgba(255, 255, 255, 0.25);
 }
+
+
+/* background-image: linear-gradient(to bottom right,  transparent calc(50% - 1px), red, transparent calc(50% + 1px)); */

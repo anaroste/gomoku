@@ -6,6 +6,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" type="text/css" href="{% static 'css/grid.css' %}" />
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
     <title>Gomoku</title>
 </head>
 <body>
@@ -25,15 +26,9 @@
 </body>
 <script>
     IA = true
-    if (IA == true) {
-        var socket = new WebSocket('ws://localhost:8000/ws/some_url/');
-
-        socket.onmessage = function(event) {
-            // var data = JSON.parse(event.data);
-            console.log('hum')
-            console.log(event.data);
-        }
-    }
+    // if (IA == true) {
+    //     var socket = new WebSocket('ws://localhost:8000/ws/some_url/');
+    // }
 
     const board = document.querySelector(".board");
     const placeStone = (column, row, mark) => {
@@ -79,12 +74,34 @@
                 'black': 'black',
             };
 
+    COLOR_IA = 'black'
     PLAYER = 'white';
     BLACK_CAUGHT = 0
     WHITE_CAUGHT = 0
     LINE = []
+    LAST_HIT = [-1, -1]
 
     CAPTURE = true
+
+    function nextPlayer() {
+        PLAYER = PLAYER == 'white' ? 'black' : 'white';
+        if (IA == true && PLAYER == COLOR_IA) {
+            $.ajax({
+                type : 'POST',
+                url :  "/ia_play",
+                data :  {'dico' : JSON.stringify({'goban': GOBAN, 'black_caught': BLACK_CAUGHT, 'white_caught': WHITE_CAUGHT, 'last_hit': LAST_HIT, 'ia_color': COLOR_IA})},
+                success : function(response){
+                    var data = JSON.parse(response.data);
+                    target = document.getElementById(data['i'] + '-' + data['j'])
+                    clickOnRock(target)
+                },
+                error : function(response){
+                    alert("Erreur")
+                }
+            });
+
+        }
+    }
 
     function opponent() {
         return PLAYER == 'white' ? 'black' : 'white'
@@ -182,7 +199,9 @@
             stone.classList.add('ghost');
             stone.style.opacity = 0;
             stone.style.background = 'transparent';
+            GOBAN[elt[0]][elt[1]] = 'x';
         });
+        console.log(GOBAN)
     }
 
     function capture(i, j) {
@@ -250,21 +269,26 @@
         })
     }
 
+    function clickOnRock(target) {
+                target.classList.add(PLAYER);
+                target.style.opacity = 1;
+                id = target.id.split('-');
+                LAST_HIT = [id[0], id[1]];
+                GOBAN[id[0]][id[1]] = PLAYER[0];
+                if (CAPTURE == true)
+                    capture(parseInt(id[0]), parseInt(id[1]));
+                if (fiveInLine() == true)
+                    win(PLAYER)
+                nextPlayer();
+    }
+
     ghostList = document.getElementsByClassName('ghost')
 
     for (var i = 0; i < ghostList.length; i++) {
         click = false
         ghostList[i].addEventListener('click', function(event) {
             if (containesBlackOrWhite(event) == false) {
-                event.target.classList.add(PLAYER);
-                event.target.style.opacity = 1;
-                id = event.target.id.split('-');
-                GOBAN[id[0]][id[1]] = PLAYER[0];
-                if (CAPTURE == true)
-                    capture(parseInt(id[0]), parseInt(id[1]));
-                if (fiveInLine() == true)
-                    win(PLAYER)
-                PLAYER = PLAYER == 'white' ? 'black' : 'white';
+                clickOnRock(event.target);
             }
         })
         ghostList[i].addEventListener('mouseover', function(event) {
