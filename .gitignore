@@ -1,0 +1,13 @@
+﻿core/__pycache__/__init__.cpython-38.pyc
+core/__pycache__/admin.cpython-38.pyc
+core/__pycache__/api.cpython-38.pyc
+core/__pycache__/consumers.cpython-38.pyc
+core/__pycache__/forms.cpython-38.pyc
+core/__pycache__/models.cpython-38.pyc
+core/__pycache__/routing.cpython-38.pyc
+core/__pycache__/serializers.cpython-38.pyc
+core/__pycache__/urls.cpython-38.pyc
+core/__pycache__/views.cpython-38.pyc
+core/migrations/__pycache__/__init__.cpython-38.pyc
+gomoku/__pycache__/settings.cpython-38.pyc
+gomoku/__pycache__/urls.cpython-38.pyc
