@@ -6,6 +6,7 @@ from . import forms
 import json
 from random import randint
 from django.views.decorators.csrf import csrf_exempt
+from .IA.minimax import minimax
 
 def pierre_vide_aleatoire(goban):
     good = False
@@ -30,8 +31,8 @@ def Ia_play(request):
         # dico['last_hit'] -> Dernier coup joué, si last_hit == [-1, -1], l'ordi est le premier a jouer
         # dico['ia_color'] -> Couleur de l'ordi
 
-        i, j = pierre_vide_aleatoire(dico['goban'])
-
-        data = json.dumps({'i': i, 'j': j})
+        # i, j = pierre_vide_aleatoire(dico['goban'])
+        bestHit, bestScore = minimax(3, True, dico['ia_color'], dico['goban'])
+        data = json.dumps({'i': bestHit[0], 'j': bestHit[1]})
         return JsonResponse({"success" : True, 'data' : data}, status=200)
     return JsonResponse({"success" : False}, status=400)
