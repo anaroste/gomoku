@@ -32,7 +32,8 @@ def Ia_play(request):
         # dico['ia_color'] -> Couleur de l'ordi
 
         # i, j = pierre_vide_aleatoire(dico['goban'])
-        bestHit, bestScore = minimax(3, True, dico['ia_color'], dico['goban'])
+        
+        bestHit, bestScore = minimax(1, True, dico['goban'])
         data = json.dumps({'i': bestHit[0], 'j': bestHit[1]})
         return JsonResponse({"success" : True, 'data' : data}, status=200)
     return JsonResponse({"success" : False}, status=400)

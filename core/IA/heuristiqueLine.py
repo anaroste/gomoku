@@ -49,10 +49,9 @@ def getScore(localBoard, player, lastMove = None) :
     scoreBoardWite = np.zeros((19, 19))
     
     heuristiqueLine('b', scoreBoardBlack)
-    print(scoreBoardBlack)
-    print('\n')
+
     heuristiqueLine('w', scoreBoardWite)
-    print(scoreBoardWite)
+
     if (player == 'b'):
         scorePlayer = np.subtract(scoreBoardBlack, scoreBoardWite)
     else :
@@ -83,5 +82,5 @@ def callGetScore() :
     player = 'black'
 
     score = getScore(localBoard, player[0])
-    print(score)
+
 callGetScore()

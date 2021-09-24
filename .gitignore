@@ -11,3 +11,5 @@ core/__pycache__/views.cpython-38.pyc
 core/migrations/__pycache__/__init__.cpython-38.pyc
 gomoku/__pycache__/settings.cpython-38.pyc
 gomoku/__pycache__/urls.cpython-38.pyc
+core/IA/__pycache__/heuristiqueLine.cpython-38.pyc
+core/IA/__pycache__/minimax.cpython-38.pyc
